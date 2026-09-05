@@ -46,10 +46,10 @@ body{display:flex;justify-content:center}
 @keyframes voice{to{box-shadow:0 0 42px rgba(0,205,255,.55)}}
 @media(max-height:700px){.avatar-wrap{top:3%;width:min(82vw,430px)}.hud{top:39%}.bubble{bottom:130px}.controls{bottom:42px}}
 </style>
-</head>
+<style>.robot-audio{position:absolute;top:58px;left:50%;transform:translateX(-50%);z-index:10;font-size:9px;letter-spacing:1.5px;color:#67ddff;opacity:.8}</style></head>
 <body>
 <div class="app" id="app">
-  <div class="grid"></div>
+  <div class="grid"></div><div class="robot-audio" id="robotAudioStatus">ROBOT VOICE READY</div>
   <div class="header">
     <div class="brand">DEE</div>
     <div class="status" id="status">SYSTEM ONLINE</div>
@@ -88,6 +88,9 @@ body{display:flex;justify-content:center}
 
 <script>
 const app=document.getElementById('app');
+const robotStartup=new Audio('dee-startup-robot.mp3');
+robotStartup.preload='auto';
+function playRobotStartup(){ try{ robotStartup.currentTime=0; robotStartup.play(); document.getElementById('robotAudioStatus').textContent='ROBOT VOICE • ONLINE'; }catch(e){} }
 const bubble=document.getElementById('bubble');
 const hint=document.getElementById('hint');
 const status=document.getElementById('status');
@@ -112,60 +115,23 @@ function answer(text){
   return 'Baik, saya mengerti. Pada prototype ini saya baru menjalankan perintah dasar. Kita bisa mengembangkan kemampuan Dee berikutnya.';
 }
 
-function robotTone(type){
-  // Small electronic confirmation tones make the built-in speech feel more like an AI system.
-  try{
-    const AC=window.AudioContext||window.webkitAudioContext;
-    if(!AC) return;
-    const ctx=new AC();
-    const osc=ctx.createOscillator();
-    const gain=ctx.createGain();
-    osc.type='square';
-    osc.frequency.value=type==='start'?620:420;
-    gain.gain.setValueAtTime(0.0001,ctx.currentTime);
-    gain.gain.exponentialRampToValueAtTime(0.045,ctx.currentTime+0.02);
-    gain.gain.exponentialRampToValueAtTime(0.0001,ctx.currentTime+0.16);
-    osc.connect(gain); gain.connect(ctx.destination);
-    osc.start(); osc.stop(ctx.currentTime+0.18);
-    setTimeout(()=>ctx.close(),260);
-  }catch(e){}
-}
-
 function speak(text){
   setMode('speaking');
   bubble.innerHTML='<strong>Dee:</strong><br>'+text;
-  robotTone('start');
-
   if('speechSynthesis' in window){
     speechSynthesis.cancel();
     const u=new SpeechSynthesisUtterance(text);
-
-    // Deliberate low-pitch delivery for a more synthetic/robotic character.
-    u.lang='id-ID';
-    u.rate=0.82;
-    u.pitch=0.55;
-    u.volume=1;
-
-    const voices=speechSynthesis.getVoices()||[];
-    const maleWords=/male|laki|pria|david|daniel|alex|mark|fred|james/i;
-    const voice=
-      voices.find(v=>/^id(-|_)?ID/i.test(v.lang)&&maleWords.test(v.name)) ||
-      voices.find(v=>maleWords.test(v.name)) ||
-      voices.find(v=>/^id(-|_)?ID/i.test(v.lang)) ||
-      null;
-    if(voice) u.voice=voice;
-
-    u.onend=()=>{
-      robotTone('end');
-      setMode('');
-    };
-    u.onerror=()=>setMode('');
+    u.lang='id-ID'; u.rate=.88; u.pitch=.72;
+    const voices=speechSynthesis.getVoices();
+    const preferred=voices.find(v => /id|ID/.test(v.lang) && /male|laki|pria/i.test(v.name))
+      || voices.find(v => /id|ID/.test(v.lang))
+      || voices.find(v => /en-US|en-GB/i.test(v.lang) && /male|David|Daniel|Alex/i.test(v.name));
+    if(preferred) u.voice=preferred;
+    u.onend=()=>setMode('');
     speechSynthesis.speak(u);
-  } else {
-    setTimeout(()=>setMode(''),1800);
-  }
+  } else setTimeout(()=>setMode(''),1800);
 }
-function say(text){speak(text)}
+function say(text){ playRobotStartup(); speak(text)}
 
 const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
 let recognition=null;
@@ -184,7 +150,7 @@ if(SR){
   recognition.onerror=()=>{mic.classList.remove('active');setMode('');bubble.innerHTML='<strong>Dee:</strong><br>Saya belum bisa menangkap suara. Silakan coba lagi.'};
   recognition.onend=()=>mic.classList.remove('active');
 }
-mic.onclick=()=>{
+mic.onclick=()=>{ playRobotStartup();
   if(!recognition){
     speak('Fitur suara browser belum tersedia. Silakan gunakan Chrome di Android.');
     return;
