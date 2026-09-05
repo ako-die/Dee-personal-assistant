@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>DEE — Personal Assistant</title>
+<title>DEE — Personal AI Assistant</title>
 <style>
 *{box-sizing:border-box}
 html,body{margin:0;width:100%;height:100%;font-family:Arial,Helvetica,sans-serif;background:#020816;color:#eaf8ff;overflow:hidden}
@@ -67,7 +67,7 @@ body{display:flex;justify-content:center}
 
   <div class="bubble" id="bubble">
     <strong>Selamat pagi!</strong><br>
-    Saya Dee, asisten pribadi Anda.<br>
+    Saya Dee, personal AI assistant Anda.<br>
     Ada yang bisa saya bantu hari ini?
   </div>
 
@@ -118,7 +118,12 @@ function speak(text){
   if('speechSynthesis' in window){
     speechSynthesis.cancel();
     const u=new SpeechSynthesisUtterance(text);
-    u.lang='id-ID'; u.rate=.95; u.pitch=1;
+    u.lang='id-ID'; u.rate=.88; u.pitch=.72;
+    const voices=speechSynthesis.getVoices();
+    const preferred=voices.find(v => /id|ID/.test(v.lang) && /male|laki|pria/i.test(v.name))
+      || voices.find(v => /id|ID/.test(v.lang))
+      || voices.find(v => /en-US|en-GB/i.test(v.lang) && /male|David|Daniel|Alex/i.test(v.name));
+    if(preferred) u.voice=preferred;
     u.onend=()=>setMode('');
     speechSynthesis.speak(u);
   } else setTimeout(()=>setMode(''),1800);
