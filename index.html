@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>DEE — Personal Assistant</title>
+<style>
+*{box-sizing:border-box}
+html,body{margin:0;width:100%;height:100%;font-family:Arial,Helvetica,sans-serif;background:#020816;color:#eaf8ff;overflow:hidden}
+body{display:flex;justify-content:center}
+.app{position:relative;width:100%;max-width:520px;height:100dvh;overflow:hidden;background:
+ radial-gradient(circle at 50% 38%,rgba(0,140,255,.18),transparent 35%),
+ linear-gradient(180deg,#031327 0%,#020713 100%)}
+.grid{position:absolute;inset:0;opacity:.18;background-image:linear-gradient(rgba(0,180,255,.16) 1px,transparent 1px),linear-gradient(90deg,rgba(0,180,255,.16) 1px,transparent 1px);background-size:28px 28px;transform:perspective(500px) rotateX(55deg) scale(1.7);transform-origin:bottom;bottom:-32%;top:45%}
+.header{position:absolute;top:16px;left:20px;right:20px;display:flex;justify-content:space-between;align-items:center;z-index:5}
+.brand{font-weight:800;letter-spacing:7px;font-size:25px;text-shadow:0 0 18px #00aaff}
+.status{font-size:11px;letter-spacing:2px;color:#50f3a0}
+.status:before{content:"";display:inline-block;width:8px;height:8px;border-radius:50%;background:#36ef8c;box-shadow:0 0 12px #36ef8c;margin-right:7px}
+.avatar-wrap{position:absolute;left:50%;top:7%;width:min(92vw,490px);aspect-ratio:1/1.35;transform:translateX(-50%);z-index:2}
+.avatar{position:absolute;inset:0;background:url("dee-avatar.png") center/cover no-repeat;border-radius:42%;filter:saturate(.85) contrast(1.05) drop-shadow(0 0 22px rgba(0,170,255,.65));}
+.avatar-wrap:after{content:"";position:absolute;inset:8% 6%;border:1px solid rgba(0,204,255,.35);border-radius:50%;box-shadow:0 0 35px rgba(0,175,255,.18) inset;animation:pulse 3s infinite}
+.ring{position:absolute;left:50%;top:40%;width:70%;aspect-ratio:1;transform:translate(-50%,-50%);border:2px solid rgba(0,190,255,.42);border-radius:50%;box-shadow:0 0 28px rgba(0,190,255,.28);animation:spin 16s linear infinite}
+.ring:before,.ring:after{content:"";position:absolute;inset:8%;border:1px dashed rgba(0,190,255,.42);border-radius:50%}
+.ring:after{inset:18%;animation:spin 9s linear reverse infinite}
+.hud{position:absolute;left:18px;right:18px;top:44%;z-index:4;display:flex;justify-content:space-between;gap:10px}
+.panel{width:43%;padding:12px;border:1px solid rgba(0,190,255,.5);border-radius:13px;background:rgba(2,17,38,.72);box-shadow:0 0 18px rgba(0,160,255,.14);backdrop-filter:blur(7px);font-size:11px}
+.panel b{display:block;color:#63dcff;letter-spacing:1px;margin-bottom:7px}
+.bubble{position:absolute;left:50%;bottom:150px;transform:translateX(-50%);width:calc(100% - 36px);z-index:6;padding:14px 18px;border:1px solid #08baff;border-radius:18px;background:rgba(2,15,34,.9);box-shadow:0 0 25px rgba(0,174,255,.22);font-size:15px;line-height:1.45;text-align:center}
+.bubble strong{color:#64dcff}
+.controls{position:absolute;bottom:52px;left:20px;right:20px;z-index:8}
+.mic{width:82px;height:82px;margin:0 auto 12px;border-radius:50%;border:2px solid #08baff;background:rgba(0,35,70,.9);color:#dff9ff;font-size:34px;box-shadow:0 0 25px rgba(0,174,255,.5);cursor:pointer;transition:.2s}
+.mic:active,.mic.active{transform:scale(.94);box-shadow:0 0 50px rgba(0,210,255,.9)}
+.hint{text-align:center;font-size:11px;letter-spacing:2px;color:#77cfea}
+.menus{position:absolute;bottom:6px;left:10px;right:10px;display:flex;justify-content:space-around;z-index:9}
+.menu{background:none;border:0;color:#a9eaff;font-size:10px;letter-spacing:.4px;padding:6px;cursor:pointer}
+.menu span{display:block;font-size:18px;margin-bottom:2px}
+.mode-listening .avatar{filter:saturate(1.15) brightness(1.12) drop-shadow(0 0 35px #00d5ff)}
+.mode-listening .ring{animation-duration:4s;box-shadow:0 0 45px rgba(0,220,255,.65)}
+.mode-thinking .avatar{animation:flicker .55s infinite alternate}
+.mode-thinking .ring{animation-duration:1.5s}
+.mode-speaking .avatar{filter:saturate(1.15) brightness(1.1) drop-shadow(0 0 42px #00c8ff)}
+.mode-speaking .bubble{animation:voice 1s infinite alternate}
+@keyframes spin{to{transform:translate(-50%,-50%) rotate(360deg)}}
+@keyframes pulse{50%{transform:scale(1.025);opacity:.55}}
+@keyframes flicker{to{opacity:.72;filter:brightness(1.35) drop-shadow(0 0 45px #00d5ff)}}
+@keyframes voice{to{box-shadow:0 0 42px rgba(0,205,255,.55)}}
+@media(max-height:700px){.avatar-wrap{top:3%;width:min(82vw,430px)}.hud{top:39%}.bubble{bottom:130px}.controls{bottom:42px}}
+</style>
+</head>
+<body>
+<div class="app" id="app">
+  <div class="grid"></div>
+  <div class="header">
+    <div class="brand">DEE</div>
+    <div class="status" id="status">SYSTEM ONLINE</div>
+  </div>
+
+  <div class="avatar-wrap">
+    <div class="ring"></div>
+    <div class="avatar"></div>
+  </div>
+
+  <div class="hud">
+    <div class="panel"><b>SYSTEM STATUS</b>AI CORE <span>● ONLINE</span><br>VOICE <span>● READY</span></div>
+    <div class="panel"><b>DEE MODE</b>READY<br>MEMORY ACTIVE</div>
+  </div>
+
+  <div class="bubble" id="bubble">
+    <strong>Selamat pagi!</strong><br>
+    Saya Dee, asisten pribadi Anda.<br>
+    Ada yang bisa saya bantu hari ini?
+  </div>
+
+  <div class="controls">
+    <button class="mic" id="mic" aria-label="Mulai bicara">🎙️</button>
+    <div class="hint" id="hint">TEKAN &amp; BICARA</div>
+  </div>
+
+  <div class="menus">
+    <button class="menu" onclick="say('Menu tugas dibuka.')"><span>☑</span>TUGAS</button>
+    <button class="menu" onclick="say('Menu agenda dibuka.')"><span>▣</span>AGENDA</button>
+    <button class="menu" onclick="say('Menu laporan dibuka.')"><span>▤</span>LAPORAN</button>
+    <button class="menu" onclick="say('Memory Dee siap.')"><span>🧠</span>MEMORY</button>
+    <button class="menu" onclick="say('Pencarian siap digunakan.')"><span>⌕</span>CARI</button>
+    <button class="menu" onclick="say('Pengaturan dibuka.')"><span>⚙</span>SETTING</button>
+  </div>
+</div>
+
+<script>
+const app=document.getElementById('app');
+const bubble=document.getElementById('bubble');
+const hint=document.getElementById('hint');
+const status=document.getElementById('status');
+const mic=document.getElementById('mic');
+
+function setMode(mode){
+  app.classList.remove('mode-listening','mode-thinking','mode-speaking');
+  if(mode) app.classList.add('mode-'+mode);
+  if(mode==='listening'){status.textContent='LISTENING';hint.textContent='DEE SEDANG MENDENGARKAN...'}
+  else if(mode==='thinking'){status.textContent='THINKING';hint.textContent='DEE SEDANG BERPIKIR...'}
+  else if(mode==='speaking'){status.textContent='SPEAKING';hint.textContent='DEE SEDANG MENJAWAB...'}
+  else {status.textContent='SYSTEM ONLINE';hint.textContent='TEKAN & BICARA'}
+}
+
+function answer(text){
+  const t=text.toLowerCase();
+  if(t.includes('halo') || t.includes('hai') || t.includes('pagi')) return 'Halo! Saya Dee. Senang bisa membantu Anda hari ini.';
+  if(t.includes('siapa')) return 'Saya Dee, personal assistant digital Anda.';
+  if(t.includes('tugas')) return 'Baik. Saya siap membantu mengelola tugas Anda.';
+  if(t.includes('agenda')) return 'Baik. Saya siap membantu melihat dan mengatur agenda Anda.';
+  if(t.includes('terima kasih') || t.includes('makasih')) return 'Sama-sama. Saya selalu siap membantu.';
+  return 'Baik, saya mengerti. Pada prototype ini saya baru menjalankan perintah dasar. Kita bisa mengembangkan kemampuan Dee berikutnya.';
+}
+
+function speak(text){
+  setMode('speaking');
+  bubble.innerHTML='<strong>Dee:</strong><br>'+text;
+  if('speechSynthesis' in window){
+    speechSynthesis.cancel();
+    const u=new SpeechSynthesisUtterance(text);
+    u.lang='id-ID'; u.rate=.95; u.pitch=1;
+    u.onend=()=>setMode('');
+    speechSynthesis.speak(u);
+  } else setTimeout(()=>setMode(''),1800);
+}
+function say(text){speak(text)}
+
+const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+let recognition=null;
+if(SR){
+  recognition=new SR();
+  recognition.lang='id-ID';
+  recognition.interimResults=false;
+  recognition.maxAlternatives=1;
+  recognition.onstart=()=>{mic.classList.add('active');setMode('listening');bubble.innerHTML='<strong>Dee:</strong><br>Saya mendengarkan...'};
+  recognition.onresult=e=>{
+    const text=e.results[0][0].transcript;
+    setMode('thinking');
+    bubble.innerHTML='<strong>Anda:</strong><br>'+text;
+    setTimeout(()=>speak(answer(text)),650);
+  };
+  recognition.onerror=()=>{mic.classList.remove('active');setMode('');bubble.innerHTML='<strong>Dee:</strong><br>Saya belum bisa menangkap suara. Silakan coba lagi.'};
+  recognition.onend=()=>mic.classList.remove('active');
+}
+mic.onclick=()=>{
+  if(!recognition){
+    speak('Fitur suara browser belum tersedia. Silakan gunakan Chrome di Android.');
+    return;
+  }
+  try{recognition.start()}catch(e){}
+};
+</script>
+</body>
+</html>
