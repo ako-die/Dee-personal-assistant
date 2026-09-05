@@ -46,10 +46,10 @@ body{display:flex;justify-content:center}
 @keyframes voice{to{box-shadow:0 0 42px rgba(0,205,255,.55)}}
 @media(max-height:700px){.avatar-wrap{top:3%;width:min(82vw,430px)}.hud{top:39%}.bubble{bottom:130px}.controls{bottom:42px}}
 </style>
-<style>.robot-audio{position:absolute;top:58px;left:50%;transform:translateX(-50%);z-index:10;font-size:9px;letter-spacing:1.5px;color:#67ddff;opacity:.8}</style></head>
+</head>
 <body>
 <div class="app" id="app">
-  <div class="grid"></div><div class="robot-audio" id="robotAudioStatus">ROBOT VOICE READY</div>
+  <div class="grid"></div>
   <div class="header">
     <div class="brand">DEE</div>
     <div class="status" id="status">SYSTEM ONLINE</div>
@@ -88,9 +88,6 @@ body{display:flex;justify-content:center}
 
 <script>
 const app=document.getElementById('app');
-const robotStartup=new Audio('dee-startup-robot.mp3');
-robotStartup.preload='auto';
-function playRobotStartup(){ try{ robotStartup.currentTime=0; robotStartup.play(); document.getElementById('robotAudioStatus').textContent='ROBOT VOICE • ONLINE'; }catch(e){} }
 const bubble=document.getElementById('bubble');
 const hint=document.getElementById('hint');
 const status=document.getElementById('status');
@@ -131,7 +128,7 @@ function speak(text){
     speechSynthesis.speak(u);
   } else setTimeout(()=>setMode(''),1800);
 }
-function say(text){ playRobotStartup(); speak(text)}
+function say(text){speak(text)}
 
 const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
 let recognition=null;
@@ -150,7 +147,7 @@ if(SR){
   recognition.onerror=()=>{mic.classList.remove('active');setMode('');bubble.innerHTML='<strong>Dee:</strong><br>Saya belum bisa menangkap suara. Silakan coba lagi.'};
   recognition.onend=()=>mic.classList.remove('active');
 }
-mic.onclick=()=>{ playRobotStartup();
+mic.onclick=()=>{
   if(!recognition){
     speak('Fitur suara browser belum tersedia. Silakan gunakan Chrome di Android.');
     return;
