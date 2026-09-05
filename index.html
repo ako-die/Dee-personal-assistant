@@ -73,6 +73,7 @@ body{display:flex;justify-content:center}
 
   <div class="controls">
     <button class="mic" id="mic" aria-label="Mulai bicara">🎙️</button>
+    <button id="voiceTest" aria-label="Uji suara DEE" style="display:block;margin:0 auto 8px;border:1px solid #08baff;border-radius:12px;background:rgba(0,35,70,.75);color:#aeeeff;padding:8px 16px;font-size:11px;letter-spacing:1.5px;cursor:pointer">🔊 UJI SUARA DEE</button>
     <div class="hint" id="hint">TEKAN &amp; BICARA</div>
   </div>
 
@@ -92,6 +93,8 @@ const bubble=document.getElementById('bubble');
 const hint=document.getElementById('hint');
 const status=document.getElementById('status');
 const mic=document.getElementById('mic');
+const voiceTest=document.getElementById('voiceTest');
+const robovoiceAudio=new Audio('dee-robovoice-test.mp3');
 
 function setMode(mode){
   app.classList.remove('mode-listening','mode-thinking','mode-speaking');
@@ -129,6 +132,15 @@ function speak(text){
   } else setTimeout(()=>setMode(''),1800);
 }
 function say(text){speak(text)}
+
+voiceTest.onclick=()=>{
+  setMode('speaking');
+  bubble.innerHTML='<strong>Dee:</strong><br>Selamat malam. Saya DEE, personal AI assistant Anda. Sistem siap membantu.';
+  robovoiceAudio.currentTime=0;
+  robovoiceAudio.play().then(()=>{
+    robovoiceAudio.onended=()=>setMode('');
+  }).catch(()=>setMode(''));
+};
 
 const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
 let recognition=null;
